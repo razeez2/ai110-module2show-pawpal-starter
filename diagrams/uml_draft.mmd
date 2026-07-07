@@ -1,0 +1,53 @@
+classDiagram
+    %% PawPal+ — pet care planning assistant
+    %% Three core user actions map onto the classes below:
+    %%   1. Create a profile  -> Owner + Pet
+    %%   2. Add a task        -> Task
+    %%   3. Get a plan        -> Scheduler produces a Plan
+
+    class Owner {
+        +str name
+        +int available_minutes
+        +list~str~ preferences
+        +add_task(task Task) void
+        +remove_task(task Task) void
+    }
+
+    class Pet {
+        +str name
+        +str species
+    }
+
+    class Task {
+        +str title
+        +int duration_minutes
+        +str priority
+        +priority_rank() int
+    }
+
+    class Scheduler {
+        +list~Task~ tasks
+        +int available_minutes
+        +generate_plan() Plan
+        +sort_by_priority() list~Task~
+    }
+
+    class Plan {
+        +list~ScheduledTask~ items
+        +list~Task~ skipped
+        +int total_minutes
+        +explain() str
+    }
+
+    class ScheduledTask {
+        +Task task
+        +str start_time
+        +str reason
+    }
+
+    Owner "1" --> "1" Pet : owns
+    Owner "1" --> "*" Task : has
+    Scheduler --> Task : reads
+    Scheduler --> Plan : produces
+    Plan "1" --> "*" ScheduledTask : contains
+    ScheduledTask --> Task : wraps
