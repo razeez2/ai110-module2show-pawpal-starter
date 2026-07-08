@@ -64,7 +64,7 @@ Daily plan:
 
 ```bash
 # Run the full test suite:
-pytest
+python -m pytest
 
 # Run with coverage:
 pytest --cov
@@ -73,7 +73,28 @@ pytest --cov
 Sample test output:
 
 ```
-# Paste your pytest output here
+$ python -m pytest -v
+============================= test session starts ==============================
+platform darwin -- Python 3.11.3, pytest-9.0.3, pluggy-1.6.0
+cachedir: .pytest_cache
+rootdir: /Users/raabiahazeez/AI110/ai110-module2show-pawpal-starter
+plugins: anyio-4.13.0
+collected 10 items
+
+tests/test_pawpal.py::test_mark_complete_changes_status PASSED           [ 10%]
+tests/test_pawpal.py::test_adding_task_increases_pet_task_count PASSED   [ 20%]
+tests/test_pawpal.py::test_organize_returns_tasks_in_chronological_order PASSED [ 30%]
+tests/test_pawpal.py::test_completing_daily_task_schedules_next_day PASSED [ 40%]
+tests/test_pawpal.py::test_completing_weekly_task_advances_one_week PASSED [ 50%]
+tests/test_pawpal.py::test_completing_is_idempotent PASSED               [ 60%]
+tests/test_pawpal.py::test_monthly_task_does_not_recur PASSED            [ 70%]
+tests/test_pawpal.py::test_todays_plan_hides_future_occurrences PASSED   [ 80%]
+tests/test_pawpal.py::test_find_conflicts_flags_same_time_across_pets PASSED [ 90%]
+tests/test_pawpal.py::test_find_conflicts_empty_when_times_differ PASSED [100%]
+
+============================== 10 passed in 0.01s ==============================
+
+confidence in system's reliability: 4, handles more edge cases such as weekly recurrence, idempotent completion (no duplicates), monthly tasks not recurring, today's-plan filtering, and the no-conflict case.
 ```
 
 ## 📐 Smarter Scheduling

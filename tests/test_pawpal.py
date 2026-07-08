@@ -32,6 +32,20 @@ def test_adding_task_increases_pet_task_count():
     assert len(pet.tasks) == 1
 
 
+def test_organize_returns_tasks_in_chronological_order():
+    """organize() sorts pending tasks by time of day, regardless of add order."""
+    pet = Pet(name="Buddy", species="Dog")
+    # Added deliberately out of order.
+    pet.add_task(Task(description="Walk Buddy", time="17:30"))
+    pet.add_task(Task(description="Feed Buddy", time="08:00"))
+    pet.add_task(Task(description="Lunch Buddy", time="12:00"))
+    scheduler = Scheduler(owner=Owner(name="Sam", pets=[pet]))
+
+    times = [t.time for t in scheduler.organize()]
+
+    assert times == ["08:00", "12:00", "17:30"]        # earliest first
+
+
 def test_completing_daily_task_schedules_next_day():
     """Completing a daily task adds a fresh copy due one day later."""
     pet = Pet(name="Buddy", species="Dog")
