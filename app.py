@@ -73,17 +73,22 @@ else:
 st.header("3. Daily plan")
 
 scheduler = Scheduler(owner=owner)
-plan = scheduler.organize()
+plan = scheduler.todays_plan()
 
 if not plan:
     st.info("No tasks yet. Add some above, then your plan will appear here.")
 else:
-    st.caption("Ordered: still-to-do first, then by time of day. Check off what's done.")
+    st.caption(
+        "Today and overdue only, still-to-do first then by time of day. "
+        "Completing a daily/weekly task schedules the next one automatically."
+    )
     for i, task in enumerate(plan):
         done = st.checkbox(str(task), value=task.completed, key=f"task_{i}")
-        # Keep the underlying Task in sync with the checkbox.
+        # Keep the underlying Task in sync with the checkbox. Completing via the
+        # scheduler auto-adds the next occurrence for recurring tasks; it's
+        # idempotent, so reruns while the box stays checked won't duplicate.
         if done:
-            task.mark_complete()
+            scheduler.complete_task(task)
         else:
             task.mark_incomplete()
 

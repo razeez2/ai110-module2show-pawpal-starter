@@ -31,7 +31,8 @@
 
 - Describe one tradeoff your scheduler makes.
 - Why is that tradeoff reasonable for this scenario?
-
+ 
+ One trade-off is that it sorts tasks by the start time and not duration. So a 30 min task of walking could overlap with a 15 min task of feeding if they have close enough start times. This is reasonable for this scenario because tasks for pets are not generally time-sensitive in terms of duration & may be different everyday depending on the owner's schedule. 
 ---
 
 ## 3. AI Collaboration
@@ -45,7 +46,9 @@
 
 - Describe one moment where you did not accept an AI suggestion as-is.
     - it told me to write over the uml.mmd file for the draft uml but I told it to just add draft file as a new file.
+    - the "simpler" algorithm change was just one line and the output for the warning of two tasks being at the same times was made friendlier and didnt sound like a warning
 - How did you evaluate or verify what the AI suggested?
+- testing and consistently re-reading the assignment instructions to see if it was suggesting something expected or unexpected.
 
 ---
 

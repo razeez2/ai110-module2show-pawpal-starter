@@ -78,14 +78,56 @@ Sample test output:
 
 ## 📐 Smarter Scheduling
 
-> Fill in once you've implemented scheduling logic.
+These are the scheduling features PawPal+ adds on top of just storing tasks. All of
+them live in the `Scheduler` (and `Task`) classes in `pawpal_system.py`.
 
-| Feature | Method(s) | Notes |
-|---------|-----------|-------|
-| Task sorting | | e.g., by priority, duration |
-| Filtering | | e.g., skip tasks if time runs out |
-| Conflict handling | | e.g., overlapping time slots |
-| Recurring tasks | | e.g., daily vs. weekly |
+| Feature | Method | What it does |
+|---------|--------|--------------|
+| Sorting | `Scheduler.organize()` | Puts the day's tasks in a sensible order |
+| Filtering | `Scheduler.pending_tasks()`, `tasks_for_pet()`, `tasks_for_frequency()` | Pulls out just the tasks you care about |
+| Conflict detection | `Scheduler.find_conflicts()` | Warns when two tasks are set for the same time |
+| Recurring tasks | `Scheduler.complete_task()` + `Task.next_occurrence()` | Auto-schedules the next daily/weekly task |
+| Today's view | `Scheduler.todays_plan()` | Shows only what's due today or overdue |
+
+### Sorting
+
+`Scheduler.organize()` sorts all of an owner's tasks into a daily plan. Things still
+to do come first, then earliest time of day, then by how often the task repeats. It
+works by sorting on the task's `"HH:MM"` time string — because the times are written
+zero-padded (like `08:00`), plain text order already matches clock order, so no fancy
+time parsing is needed.
+
+### Filtering
+
+There are a few small methods that each return just a slice of the tasks:
+
+- `pending_tasks()` — only the tasks that aren't done yet.
+- `tasks_for_pet(name)` — only one pet's tasks (name matching ignores upper/lowercase).
+- `tasks_for_frequency("daily")` — only tasks that repeat at a given frequency.
+
+Each one just walks the full task list and keeps the ones that match.
+
+### Conflict detection
+
+`Scheduler.find_conflicts()` checks whether two tasks are scheduled for the same time,
+even across different pets. It groups every task by its time slot, and if any slot has
+more than one task it returns a friendly warning message (for example, *"Conflict at
+08:00: Feed Buddy (Buddy), Medicate Whiskers (Whiskers)"*). It only returns text — it
+never stops the program — so the app can print the warning and keep going. It's a
+lightweight check: it looks for exact same-time matches, not overlapping durations.
+
+### Recurring tasks
+
+When you finish a daily or weekly task, PawPal+ sets up the next one for you.
+`Scheduler.complete_task()` marks the task done and then calls `Task.next_occurrence()`,
+which builds a fresh copy with its due date pushed forward (one day for daily, one week
+for weekly, using Python's `timedelta` so month and year rollovers are correct). One-off
+or monthly tasks don't repeat. Completing a task twice won't create duplicates.
+
+### Today's view
+
+`Scheduler.todays_plan()` shows only the tasks due today or already overdue, so a
+freshly scheduled "tomorrow" task stays hidden until tomorrow and the list doesn't pile up.
 
 ## 📸 Demo Walkthrough
 
