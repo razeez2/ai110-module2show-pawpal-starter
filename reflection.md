@@ -5,8 +5,13 @@
 **a. Initial design**
 
 - Briefly describe your initial UML design.
-
+-   My initial UML design was based on three core actions: adding a profile, adding a task, and getting a plan. I asked AI to help me create classes based on these user actions.
 - What classes did you include, and what responsibilities did you assign to each?
+    The classes I included include :
+    %% Three core user actions map onto the classes below:
+    %%   1. Create a profile  -> Owner + Pet
+    %%   2. Add a task        -> Task
+    %%   3. Get a plan        -> Scheduler produces a Plan
 
 **b. Design changes**
 
@@ -39,6 +44,7 @@
 **b. Judgment and verification**
 
 - Describe one moment where you did not accept an AI suggestion as-is.
+    - it told me to write over the uml.mmd file for the draft uml but I told it to just add draft file as a new file.
 - How did you evaluate or verify what the AI suggested?
 
 ---

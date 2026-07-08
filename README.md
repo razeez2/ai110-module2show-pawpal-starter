@@ -54,6 +54,12 @@ Paste a sample of your app's CLI or Streamlit output here so a reader can see wh
 #   ...
 ```
 
+Daily plan:
+  [ ] 08:00 Feed Buddy (daily)
+  [ ] 12:00 Groom Whiskers (weekly)
+  [ ] 17:30 Walk Buddy (daily)
+  [x] 07:15 Feed Whiskers (daily)
+
 ## 🧪 Testing PawPal+
 
 ```bash

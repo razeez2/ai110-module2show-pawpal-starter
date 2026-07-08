@@ -1,90 +1,118 @@
 """PawPal+ logic layer.
 
 Backend classes for the pet care planning assistant. This is the "logic layer"
-that the Streamlit UI (app.py) will import and call. Skeleton only — method
-bodies are stubs to be implemented in later steps.
+that the Streamlit UI (app.py) imports and calls.
 
-Class map (from diagrams/uml_draft.mmd):
-    Owner + Pet         -> create a profile
-    Task                -> add a task
-    Scheduler -> Plan -> ScheduledTask  -> get a plan
+Structure:
+    Owner  has many  Pet  has many  Task
+    Scheduler is the "brain" that reaches across all of an Owner's pets to
+    retrieve, organize, and manage their tasks.
 """
 
 from dataclasses import dataclass, field
 
 
-@dataclass
-class Pet:
-    """Basic info about the pet being cared for."""
-
-    name: str
-    species: str
+# Sort weight for priorities is not part of this design; tasks are organized by
+# frequency and completion. Frequencies we understand, ordered for display.
+FREQUENCY_ORDER = {"daily": 0, "weekly": 1, "monthly": 2}
 
 
 @dataclass
 class Task:
-    """A single pet care task (walk, feeding, meds, etc.)."""
+    """A single pet care activity (walk, feeding, meds, grooming, ...)."""
 
-    title: str
-    duration_minutes: int
-    priority: str  # "low" | "medium" | "high"
+    description: str
+    time: str = ""                 # time of day the task happens, e.g. "08:00"
+    frequency: str = "daily"       # "daily" | "weekly" | "monthly"
+    completed: bool = False        # completion status
 
-    def priority_rank(self) -> int:
-        """Return a sortable integer for this task's priority (higher = more urgent)."""
-        raise NotImplementedError
+    def mark_complete(self) -> None:
+        """Mark this task as done."""
+        self.completed = True
+
+    def mark_incomplete(self) -> None:
+        """Reset this task back to not-done (e.g. for a new day)."""
+        self.completed = False
+
+    def __str__(self) -> str:
+        """Return a one-line, human-readable summary of the task."""
+        box = "x" if self.completed else " "
+        return f"[{box}] {self.time} {self.description} ({self.frequency})"
 
 
 @dataclass
-class ScheduledTask:
-    """A task placed into the plan at a specific time, with a reason."""
+class Pet:
+    """A pet and the tasks that belong to it."""
 
-    task: Task
-    start_time: str
-    reason: str
+    name: str
+    species: str
+    tasks: list[Task] = field(default_factory=list)
 
+    def add_task(self, task: Task) -> None:
+        """Attach a task to this pet."""
+        self.tasks.append(task)
 
-@dataclass
-class Plan:
-    """The generated daily plan: scheduled tasks plus what got skipped."""
+    def remove_task(self, task: Task) -> None:
+        """Detach a task from this pet (no error if it isn't there)."""
+        if task in self.tasks:
+            self.tasks.remove(task)
 
-    items: list[ScheduledTask] = field(default_factory=list)
-    skipped: list[Task] = field(default_factory=list)
-    total_minutes: int = 0
-
-    def explain(self) -> str:
-        """Return a human-readable explanation of why the plan looks the way it does."""
-        raise NotImplementedError
+    def pending_tasks(self) -> list[Task]:
+        """Return this pet's tasks that are not yet completed."""
+        return [t for t in self.tasks if not t.completed]
 
 
 @dataclass
 class Owner:
-    """The pet owner: profile info, constraints, and their tasks."""
+    """The owner: manages multiple pets and exposes all their tasks."""
 
     name: str
-    available_minutes: int
-    preferences: list[str] = field(default_factory=list)
-    tasks: list[Task] = field(default_factory=list)
+    pets: list[Pet] = field(default_factory=list)
 
-    def add_task(self, task: Task) -> None:
-        """Add a task to this owner's list."""
-        raise NotImplementedError
+    def add_pet(self, pet: Pet) -> None:
+        """Register a pet under this owner."""
+        self.pets.append(pet)
 
-    def remove_task(self, task: Task) -> None:
-        """Remove a task from this owner's list."""
-        raise NotImplementedError
+    def remove_pet(self, pet: Pet) -> None:
+        """Remove a pet from this owner (no error if it isn't there)."""
+        if pet in self.pets:
+            self.pets.remove(pet)
+
+    def get_all_tasks(self) -> list[Task]:
+        """Flatten and return every task across all of this owner's pets."""
+        return [task for pet in self.pets for task in pet.tasks]
 
 
 class Scheduler:
-    """Builds a daily Plan from an owner's tasks and time budget."""
+    """The 'brain': retrieves, organizes, and manages tasks across all pets."""
 
-    def __init__(self, tasks: list[Task], available_minutes: int) -> None:
-        self.tasks = tasks
-        self.available_minutes = available_minutes
+    def __init__(self, owner: Owner) -> None:
+        """Create a scheduler bound to a single owner."""
+        self.owner = owner
 
-    def sort_by_priority(self) -> list[Task]:
-        """Return the tasks ordered by priority (most urgent first)."""
-        raise NotImplementedError
+    def get_all_tasks(self) -> list[Task]:
+        """Retrieve every task from the owner's pets, via the Owner."""
+        return self.owner.get_all_tasks()
 
-    def generate_plan(self) -> Plan:
-        """Fit tasks into the available time by priority and return a Plan."""
-        raise NotImplementedError
+    def tasks_by_pet(self) -> dict[str, list[Task]]:
+        """Group tasks by the pet they belong to (pet name -> tasks)."""
+        return {pet.name: list(pet.tasks) for pet in self.owner.pets}
+
+    def pending_tasks(self) -> list[Task]:
+        """All not-yet-completed tasks across every pet."""
+        return [t for t in self.get_all_tasks() if not t.completed]
+
+    def tasks_for_frequency(self, frequency: str) -> list[Task]:
+        """All tasks matching a given frequency (e.g. 'daily')."""
+        return [t for t in self.get_all_tasks() if t.frequency == frequency]
+
+    def organize(self) -> list[Task]:
+        """Return all tasks ordered: pending first, then by time of day, then frequency."""
+        return sorted(
+            self.get_all_tasks(),
+            key=lambda t: (
+                t.completed,
+                t.time,  # zero-padded "HH:MM" strings sort chronologically
+                FREQUENCY_ORDER.get(t.frequency, 99),
+            ),
+        )
