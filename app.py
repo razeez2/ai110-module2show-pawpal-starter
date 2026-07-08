@@ -73,17 +73,36 @@ else:
 st.header("3. Daily plan")
 
 scheduler = Scheduler(owner=owner)
+
+# Surface scheduling conflicts FIRST, before the owner starts working the list,
+# so they can see clashes up front. Warnings (not errors) — the plan still works.
+conflicts = scheduler.find_conflicts()
+if conflicts:
+    for warning in conflicts:
+        st.warning(warning, icon="⚠️")
+elif scheduler.get_all_tasks():
+    st.success("No scheduling conflicts — every task has its own time slot.", icon="✅")
+
 plan = scheduler.todays_plan()
 
 if not plan:
     st.info("No tasks yet. Add some above, then your plan will appear here.")
 else:
+    # Let the owner focus on one pet at a time (uses Scheduler.tasks_for_pet).
+    choice = st.selectbox("Show tasks for", ["All pets"] + [p.name for p in owner.pets])
+    if choice == "All pets":
+        visible = plan
+    else:
+        for_pet = {id(t) for t in scheduler.tasks_for_pet(choice)}
+        visible = [t for t in plan if id(t) in for_pet]
+
     st.caption(
         "Today and overdue only, still-to-do first then by time of day. "
         "Completing a daily/weekly task schedules the next one automatically."
     )
-    for i, task in enumerate(plan):
-        done = st.checkbox(str(task), value=task.completed, key=f"task_{i}")
+    for task in visible:
+        # Key by object identity so state stays stable when the filter changes.
+        done = st.checkbox(str(task), value=task.completed, key=f"task_{id(task)}")
         # Keep the underlying Task in sync with the checkbox. Completing via the
         # scheduler auto-adds the next occurrence for recurring tasks; it's
         # idempotent, so reruns while the box stays checked won't duplicate.
@@ -92,5 +111,13 @@ else:
         else:
             task.mark_incomplete()
 
+    # A tidy at-a-glance summary of the day.
     pending = scheduler.pending_tasks()
-    st.metric("Tasks remaining today", len(pending))
+    all_tasks = scheduler.get_all_tasks()
+    c1, c2, c3 = st.columns(3)
+    c1.metric("Remaining", len(pending))
+    c2.metric("Done", len(all_tasks) - len(pending))
+    c3.metric("Conflicts", len(conflicts))
+
+    if not pending:
+        st.success("All done for today! 🎉", icon="🐾")

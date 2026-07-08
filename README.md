@@ -2,6 +2,15 @@
 
 You are building **PawPal+**, a Streamlit app that helps a pet owner plan care tasks for their pet.
 
+## ✨ Features
+
+- **Sort by time of day** — the daily plan lists tasks in clock order, with unfinished ones first.
+- **Filter tasks** — view just one pet's tasks, only what's still pending, or only daily/weekly ones.
+- **Conflict warnings** — flags when two tasks are set for the same time (even across different pets), without crashing the app.
+- **Daily & weekly recurrence** — finishing a repeating task automatically schedules the next one (tomorrow for daily, next week for weekly).
+- **Today's view** — shows only what's due today or overdue, so upcoming tasks don't clutter the list.
+- **Progress tracking** — check tasks off and see how many are left for the day.
+
 ## Scenario
 
 A busy pet owner needs help staying consistent with pet care. They want an assistant that can:
@@ -152,12 +161,46 @@ freshly scheduled "tomorrow" task stays hidden until tomorrow and the list doesn
 
 ## 📸 Demo Walkthrough
 
-Describe your app in numbered steps so a reader can follow along without watching a video:
 
-1. <!-- Describe this step -->
-2. <!-- Describe this step -->
-3. <!-- Describe this step -->
-4. <!-- Describe this step -->
-5. <!-- Add more steps as needed -->
+- Enter your name and add one or more pets (name + species).
+- Add care tasks to a pet: a description, a time of day, and how often it repeats (daily / weekly / monthly).
+- See a clean daily plan sorted by time, with still-to-do tasks first.
+- Filter the plan down to a single pet.
+- Check tasks off as you finish them — recurring ones reschedule themselves.
+- Get a heads-up when two tasks are booked for the same time.
+
+### Example workflow
+
+1. **Add a pet** — type "Buddy", pick "dog", click *Add pet*.
+2. **Schedule a task** — choose Buddy, enter "Morning walk", set the time to 08:00, pick "daily", click *Add task*.
+3. **Add another** — add "Feed Buddy" at 08:00 as well (this one clashes on purpose).
+4. **View today's schedule** — scroll to *Daily plan*. Tasks appear in time order, and because two share 08:00, an amber warning shows at the top naming both.
+5. **Check one off** — tick "Morning walk". It's marked done, tomorrow's walk is scheduled automatically (hidden until tomorrow), and the "Remaining" count drops.
+
+### Key Scheduler behaviors shown
+
+- **Sorting by time** — earliest tasks first, finished tasks sink to the bottom.
+- **Conflict warnings** — same-time tasks are flagged before you start your day.
+- **Daily/weekly recurrence** — completing a repeating task creates the next one.
+- **Filtering** — narrow the plan to one pet at a time.
+
+### Sample CLI output (`python main.py`)
+
+The command-line demo builds a couple of pets and tasks, prints the sorted plan, then checks for conflicts:
+
+```
+$ python main.py
+Daily plan:
+  [ ] 08:00 Feed Buddy (daily) — due 2026-07-07
+  [ ] 08:00 Medicate Whiskers (daily) — due 2026-07-07
+  [ ] 12:00 Groom Whiskers (weekly) — due 2026-07-07
+  [ ] 17:30 Walk Buddy (daily) — due 2026-07-07
+  [x] 07:15 Feed Whiskers (daily) — due 2026-07-07
+
+Scheduling warnings:
+  ⚠️  Conflict at 08:00: Feed Buddy (Buddy), Medicate Whiskers (Whiskers)
+```
+
+Reading it: `[ ]` is an unfinished task and `[x]` is done. Tasks are listed by time of day, so the two 08:00 tasks come first. At the bottom, PawPal+ warns that Feed Buddy and Medicate Whiskers are both booked for 08:00.
 
 **Screenshot or video** *(optional)*: <!-- Insert a screenshot or link to a demo video here -->
